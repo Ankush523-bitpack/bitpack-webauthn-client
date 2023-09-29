@@ -10,7 +10,7 @@ export default function Home() {
 
   const register = async () => {
     try {
-      const challengeResponse = await axios.post('http://localhost:3000/request-challenge', { username });
+      const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
 
       const registration = await client.register(username, challenge, {
@@ -21,7 +21,7 @@ export default function Home() {
         debug: false,
       });
 
-      await axios.post('http://localhost:3000/register', registration);
+      await axios.post('https://uim-alpha.meroku.org/register', registration);
       setMessage('Registration successful!');
     } catch (error: any) {
       setMessage('Registration failed: ' + error.message);
@@ -30,10 +30,10 @@ export default function Home() {
 
   const authenticate = async () => {
     try {
-      const challengeResponse = await axios.post('http://localhost:3000/request-challenge', { username });
+      const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
 
-      const credentialsResponse = await axios.get(`http://localhost:3000/credentials/${username}`);
+      const credentialsResponse = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       const credentials = credentialsResponse.data.credentialIds;
 
       const authentication = await client.authenticate(credentials, challenge, {
@@ -42,11 +42,11 @@ export default function Home() {
         timeout: 60000,
       });
 
-      await axios.post('http://localhost:3000/authenticate', { challenge, authentication });
+      await axios.post('https://uim-alpha.meroku.org/authenticate', { challenge, authentication });
 
       setMessage('Authentication successful!');
       
-      const response = await axios.get(`http://localhost:3000/credentials/${username}`);
+      const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
         router.push(`/dashboard?walletAddress=${response.data.walletAddress}&username=${username}`);
       } else {
