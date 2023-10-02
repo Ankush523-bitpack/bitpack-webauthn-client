@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router'; 
 import { client } from '@passwordless-id/webauthn';
+import Cookie from 'js-cookie';
 
 export default function Home() {
   const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const loggedInUsername = Cookie.get('username');
+    const walletAddress = Cookie.get('walletAddress');
+    if (loggedInUsername && walletAddress) {
+      router.push(`/dashboard?walletAddress=${walletAddress}&username=${loggedInUsername}`);
+    }
+  }, [router]);
 
   const register = async () => {
     try {
@@ -48,6 +58,8 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
+        Cookie.set('username', username);
+        Cookie.set('walletAddress', response.data.walletAddress);
         router.push(`/dashboard?walletAddress=${response.data.walletAddress}&username=${username}`);
       } else {
         throw new Error("Wallet address not found");

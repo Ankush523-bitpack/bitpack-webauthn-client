@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
+import Cookie from 'js-cookie';
 
 const Dashboard = () => {
   const router = useRouter();
@@ -16,12 +17,12 @@ const Dashboard = () => {
   }, [router.query]);
 
   const signOut = () => {
-    // Clearing local storage and states
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('walletAddress');
+    // Clearing cookies and states
+    Cookie.remove('username');
+    Cookie.remove('walletAddress');
     setWalletAddress(null);
     setUsername(null);
-    
+
     // Redirecting back to the main page
     router.push('/');
   };
