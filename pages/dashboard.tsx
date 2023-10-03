@@ -8,13 +8,17 @@ const Dashboard = () => {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    if (router.query.walletAddress) {
-      setWalletAddress(router.query.walletAddress as string);
+    const loggedInUsername = Cookie.get('username');
+    const walletAddr = Cookie.get('walletAddress');
+
+    if (loggedInUsername && walletAddr) {
+      setUsername(loggedInUsername);
+      setWalletAddress(walletAddr);
+    } else {
+      router.push('/');
     }
-    if (router.query.username) {
-      setUsername(router.query.username as string);
-    }
-  }, [router.query]);
+}, [router]);
+
 
   const signOut = () => {
     // Clearing cookies and states

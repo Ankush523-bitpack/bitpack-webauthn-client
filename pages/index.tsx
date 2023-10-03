@@ -58,11 +58,11 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
-        Cookie.set('username', username);
-        Cookie.set('walletAddress', response.data.walletAddress);
-        router.push(`/dashboard?walletAddress=${response.data.walletAddress}&username=${username}`);
+          Cookie.set('username', username);
+          Cookie.set('walletAddress', response.data.walletAddress);
+          router.push('/dashboard'); // Removed the query parameters here
       } else {
-        throw new Error("Wallet address not found");
+          throw new Error("Wallet address not found");
       }
 
     } catch (error: any) {
