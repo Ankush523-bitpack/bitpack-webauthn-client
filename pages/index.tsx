@@ -14,7 +14,7 @@ export default function Home() {
     const loggedInUsername = Cookie.get('username');
     const walletAddress = Cookie.get('walletAddress');
     if (loggedInUsername && walletAddress) {
-      router.push(`/dashboard?walletAddress=${walletAddress}&username=${loggedInUsername}`);
+      router.push(`/dashboard`);
     }
   }, [router]);
 
