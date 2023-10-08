@@ -3,7 +3,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { client } from "@passwordless-id/webauthn";
 import Cookie from "js-cookie";
-import { authenticateUser, registerUser } from "uim-sdk-ts";
+// import { authenticateUser, registerUser } from "uim-sdk-ts";
 
 export default function Home() {
   const [username, setUsername] = useState("");
