@@ -19,9 +19,9 @@ export default function Home() {
     }
   }, [router]);
 
-  const origin = "https://bitpack-webauthn-client.vercel.app/";
+  const origin = "https://bitpack-webauthn-client.vercel.app";
 
-  const register = async () => {
+  const register = async (origin:string) => {
    try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
@@ -58,7 +58,7 @@ export default function Home() {
     // }
   };
 
-  const authenticate = async () => {
+  const authenticate = async (origin:string) => {
     try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
@@ -123,13 +123,13 @@ export default function Home() {
           </div>
           <div className="flex justify-between space-x-4">
             <button
-              onClick={register}
+              onClick={() => register(origin)}
               className="w-full p-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
               Register
             </button>
             <button
-              onClick={authenticate}
+              onClick={() => authenticate(origin)}
               className="w-full p-2 text-white bg-green-500 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
             >
               Login
