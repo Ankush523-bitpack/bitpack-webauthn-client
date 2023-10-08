@@ -23,7 +23,7 @@ export default function Home() {
 
   const register = async () => {
     try {
-      const challengeResponse = await axios.post('http://localhost:3000/request-challenge', { username });
+      const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
 
       const registration = await client.register(username, challenge, {
@@ -34,7 +34,7 @@ export default function Home() {
         debug: false,
       });
 
-      await axios.post('http://localhost:3000/register', registration);
+      await axios.post('https://uim-alpha.meroku.org/register', registration);
       setMessage('Registration successful!');
     } catch (error: any) {
       setMessage('Registration failed: ' + error.message);
