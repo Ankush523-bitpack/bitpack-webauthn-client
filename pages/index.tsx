@@ -19,7 +19,7 @@ export default function Home() {
     }
   }, [router]);
 
-  const origin = "http://localhost:3001";
+  const origin = "https://bitpack-webauthn-client.vercel.app";
 
   const register = async () => {
    try {
