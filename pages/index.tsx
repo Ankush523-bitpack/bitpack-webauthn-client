@@ -19,12 +19,13 @@ export default function Home() {
     }
   }, [router]);
 
-  const origin = "https://bitpack-webauthn-client.vercel.app";
+  const origin = "https://bitpack-webauthn-client.vercel.app/";
 
   const register = async () => {
    try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
+      console.log(challenge)
 
       const registration = await client.register(username, challenge, {
         authenticatorType: "auto",
@@ -38,6 +39,8 @@ export default function Home() {
         registration,
         origin
       }
+
+      console.log(payload)
 
       await axios.post('https://uim-alpha.meroku.org/register', payload);
       setMessage('Registration successful!');
@@ -57,10 +60,10 @@ export default function Home() {
 
   const authenticate = async () => {
     try {
-      const challengeResponse = await axios.post('https://uim-alpha.meroku.or/request-challenge', { username });
+      const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
 
-      const credentialsResponse = await axios.get(`https://uim-alpha.meroku.or/credentials/${username}`);
+      const credentialsResponse = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       const credentials = credentialsResponse.data.credentialIds;
 
       const authentication = await client.authenticate(credentials, challenge, {
@@ -69,11 +72,11 @@ export default function Home() {
         timeout: 60000,
       });
 
-      await axios.post('https://uim-alpha.meroku.or/authenticate', { challenge, authentication, origin });
+      await axios.post('https://uim-alpha.meroku.org/authenticate', { challenge, authentication, origin });
 
       setMessage('Authentication successful!');
       
-      const response = await axios.get(`https://uim-alpha.meroku.or/credentials/${username}`);
+      const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
           Cookie.set('username', username);
           Cookie.set('walletAddress', response.data.walletAddress);
