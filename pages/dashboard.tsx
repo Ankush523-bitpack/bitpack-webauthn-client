@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
 import Cookie from 'js-cookie';
-import jwt from "jsonwebtoken";  // Import jsonwebtoken
 
 const Dashboard = () => {
   const router = useRouter();
@@ -9,25 +8,26 @@ const Dashboard = () => {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = Cookie.get('token');
-    if (token) {
-      try {
-        const decoded: any = jwt.verify(token, "aRandomSecret");
-        setUsername(decoded.username);
-        setWalletAddress(decoded.walletAddress);
-      } catch (error) {
-        console.error("Error verifying the JWT token", error);
-        router.push('/');
-      }
+    const loggedInUsername = Cookie.get('username');
+    const walletAddr = Cookie.get('walletAddress');
+
+    if (loggedInUsername && walletAddr) {
+      setUsername(loggedInUsername);
+      setWalletAddress(walletAddr);
     } else {
       router.push('/');
     }
-  }, [router]);
+}, [router]);
+
 
   const signOut = () => {
-    Cookie.remove('token');  // Remove the JWT token
+    // Clearing cookies and states
+    Cookie.remove('username');
+    Cookie.remove('walletAddress');
     setWalletAddress(null);
     setUsername(null);
+
+    // Redirecting back to the main page
     router.push('/');
   };
 

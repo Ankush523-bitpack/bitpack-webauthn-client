@@ -3,7 +3,6 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { client } from "@passwordless-id/webauthn";
 import Cookie from "js-cookie";
-import jwt from 'jsonwebtoken';
 // import { authenticateUser, registerUser } from "uim-sdk-ts";
 
 export default function Home() {
@@ -12,16 +11,11 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = Cookie.get("token");  // Get the JWT token
-    if (token) {
-      try {
-        const decoded:any = jwt.decode(token);
-        if (decoded.username && decoded.walletAddress) {
-          router.push(`/dashboard`);
-        }
-      } catch (error) {
-        console.error("Error decoding the JWT token", error);
-      }
+    // Check if user is already logged in
+    const loggedInUsername = Cookie.get("username");
+    const walletAddress = Cookie.get("walletAddress");
+    if (loggedInUsername && walletAddress) {
+      router.push(`/dashboard`);
     }
   }, [router]);
 
@@ -84,20 +78,18 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
-          const token = jwt.sign(
-            { username: username, walletAddress: response.data.walletAddress },
-            "aRandomSecret",  // IMPORTANT: Choose a strong secret for signing JWT
-            { expiresIn: "1h" }  // Set an expiry for token for added security
-          );
-          Cookie.set("token", token);  // Set the JWT token instead of separate cookies
-
+          Cookie.set('username', username);
+          Cookie.set('walletAddress', response.data.walletAddress);
+          localStorage.setItem('username', username);
+          localStorage.setItem('walletAddress', response.data.walletAddress);
           const redirectUrl = router.query.redirect || '/dashboard';
           router.push(redirectUrl.toString());
       } else {
           throw new Error("Wallet address not found");
       }
 
-    } catch (error: any) {
+    } 
+    catch (error: any) {
       setMessage('Authentication failed: ' + error.message);
     }
     // try {
