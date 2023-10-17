@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
 import Cookie from 'js-cookie';
+import jwt from 'jsonwebtoken';
 
 const Dashboard = () => {
   const router = useRouter();
@@ -8,22 +9,25 @@ const Dashboard = () => {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const loggedInUsername = Cookie.get('username');
-    const walletAddr = Cookie.get('walletAddress');
-
-    if (loggedInUsername && walletAddr) {
-      setUsername(loggedInUsername);
-      setWalletAddress(walletAddr);
+    const token = Cookie.get('token');
+    if (token) {
+      try {
+        const decodedToken: any = jwt.verify(token, 'abcd1234'); // 'abcd1234' should be the same secret used to sign the JWT
+        setUsername(decodedToken.username);
+        setWalletAddress(decodedToken.walletAddress);
+      } catch (error) {
+        console.error('Error decoding the token:', error);
+        router.push('/');
+      }
     } else {
       router.push('/');
     }
-}, [router]);
+  }, [router]);
 
 
   const signOut = () => {
     // Clearing cookies and states
-    Cookie.remove('username');
-    Cookie.remove('walletAddress');
+    Cookie.remove('token'); // Removing the token cookie
     setWalletAddress(null);
     setUsername(null);
 
