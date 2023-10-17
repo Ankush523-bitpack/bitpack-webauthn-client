@@ -15,9 +15,15 @@ export default function Home() {
     const loggedInUsername = Cookie.get("username");
     const walletAddress = Cookie.get("walletAddress");
     if (loggedInUsername && walletAddress) {
-      router.push(`/dashboard`);
+        const redirectUrl = router.query.redirectUrl || '/dashboard';
+        if (redirectUrl !== '/dashboard') {
+            window.location.href = `${redirectUrl}?username=${loggedInUsername}&walletAddress=${walletAddress}`;
+        } else {
+            router.push(redirectUrl);
+        }
     }
-  }, [router]);
+}, [router]);
+
 
   const origin = "https://bitpack-webauthn-client.vercel.app";
 
