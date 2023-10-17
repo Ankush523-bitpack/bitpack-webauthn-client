@@ -1,23 +1,19 @@
 import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
 import Cookie from 'js-cookie';
-import jwt_decode from "jwt-decode";
+import jwt from 'jsonwebtoken';
 
-type DecodedToken = {
-  username: string;
-  walletAddress: string;
-  // other properties of your token go here, like iat (issued at), exp (expires), etc.
-};
 const Dashboard = () => {
   const router = useRouter();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
+
   useEffect(() => {
     const token = Cookie.get('token');
     if (token) {
       try {
-        const decodedToken: DecodedToken = jwt_decode(token);
+        const decodedToken: any = jwt.verify(token, 'secretKey');
         setUsername(decodedToken.username);
         setWalletAddress(decodedToken.walletAddress);
       } catch (err) {
