@@ -80,7 +80,7 @@ export default function Home() {
       if (response.data && response.data.walletAddress) {
           Cookie.set('username', username);
           Cookie.set('walletAddress', response.data.walletAddress);
-          const redirectUrl = router.query.redirect || '/dashboard';
+          const redirectUrl : any = router.query.redirect;
           router.push(`${redirectUrl.toString()}?username=${username}&walletAddress=${response.data.walletAddress}`);
       } else {
           throw new Error("Wallet address not found");
