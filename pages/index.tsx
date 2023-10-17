@@ -12,11 +12,16 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const loggedInUsername = Cookie.get("username");
-    const walletAddress = Cookie.get("walletAddress");
-    if (loggedInUsername && walletAddress) {
-      router.push(`/dashboard`);
+    const token = Cookie.get("token");  // Get the JWT token
+    if (token) {
+      try {
+        const decoded:any = jwt.decode(token);
+        if (decoded.username && decoded.walletAddress) {
+          router.push(`/dashboard`);
+        }
+      } catch (error) {
+        console.error("Error decoding the JWT token", error);
+      }
     }
   }, [router]);
 
@@ -78,18 +83,21 @@ export default function Home() {
       setMessage('Authentication successful!');
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
-    if (response.data && response.data.walletAddress) {
-      // Generate a JWT token
-      const jwtToken = jwt.sign({ username, walletAddress: response.data.walletAddress }, 'secretKey');
-      Cookie.set('token', jwtToken);
-      const redirectUrl = router.query.redirect || '/dashboard';
-      router.push(redirectUrl.toString());
-    } else {
-      throw new Error("Wallet address not found");
-    }
+      if (response.data && response.data.walletAddress) {
+          const token = jwt.sign(
+            { username: username, walletAddress: response.data.walletAddress },
+            "aRandomSecret",  // IMPORTANT: Choose a strong secret for signing JWT
+            { expiresIn: "1h" }  // Set an expiry for token for added security
+          );
+          Cookie.set("token", token);  // Set the JWT token instead of separate cookies
 
-    } 
-    catch (error: any) {
+          const redirectUrl = router.query.redirect || '/dashboard';
+          router.push(redirectUrl.toString());
+      } else {
+          throw new Error("Wallet address not found");
+      }
+
+    } catch (error: any) {
       setMessage('Authentication failed: ' + error.message);
     }
     // try {
