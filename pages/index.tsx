@@ -58,7 +58,7 @@ export default function Home() {
     // }
   };
 
-  const authenticate = async (origin: string) => {
+  const authenticate = async (origin:string) => {
     try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
@@ -73,13 +73,26 @@ export default function Home() {
       });
 
       await axios.post('https://uim-alpha.meroku.org/authenticate', { challenge, authentication, origin });
-      let redirectUrlStr = Array.isArray(router.query.redirect) ? router.query.redirect[0] : router.query.redirect;
-      const redirectUrl = new URL(redirectUrlStr || '/dashboard', origin);
-      redirectUrl.searchParams.set('username', username);
-  
-      router.push(redirectUrl.toString());
 
-    } catch (error: any) {
+      setMessage('Authentication successful!');
+      
+      const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
+      if (response.data && response.data.walletAddress) {
+          Cookie.set('username', username);
+          Cookie.set('walletAddress', response.data.walletAddress);
+          // const redirectUrl = router.query.redirect || '/dashboard';
+          const redirectUrl = router.query.redirectUrl || '/dashboard';
+          if (redirectUrl !== '/dashboard') {
+              window.location.href = `${redirectUrl}?username=${username}&walletAddress=${response.data.walletAddress}`;
+          } else {
+              router.push(redirectUrl);
+          }
+      } else {
+          throw new Error("Wallet address not found");
+      }
+
+    } 
+    catch (error: any) {
       setMessage('Authentication failed: ' + error.message);
     }
     // try {
