@@ -78,18 +78,11 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
-        Cookie.set('username', username);
-        Cookie.set('walletAddress', response.data.walletAddress);
-        const redirectUrl = router.query.redirect;
-        
-        if (typeof redirectUrl === 'string') {
-          router.push(`${redirectUrl}?username=${username}&walletAddress=${response.data.walletAddress}`);
-        } else {
-          // Handle the case where redirectUrl is undefined or not a string
-          router.push('/'); // Redirect to the homepage or another default page
-        }
-      }
-       else {
+          Cookie.set('username', username);
+          Cookie.set('walletAddress', response.data.walletAddress);
+          // const redirectUrl = router.query.redirect || '/dashboard';
+          router.push(`/dashboard`);
+      } else {
           throw new Error("Wallet address not found");
       }
 
