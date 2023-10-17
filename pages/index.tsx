@@ -3,10 +3,12 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { client } from "@passwordless-id/webauthn";
 import Cookie from "js-cookie";
+import jwt_decode from "jwt-decode";
 // import { authenticateUser, registerUser } from "uim-sdk-ts";
 
 export default function Home() {
   const [username, setUsername] = useState("");
+  const [walletAddress, setWalletAddress] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
 
@@ -77,19 +79,22 @@ export default function Home() {
       setMessage('Authentication successful!');
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
-      if (response.data && response.data.walletAddress) {
-          Cookie.set('username', username);
-          Cookie.set('walletAddress', response.data.walletAddress);
-          const redirectUrl = router.query.redirect || '/dashboard';
-          router.push(redirectUrl.toString());
-      } else {
-          throw new Error("Wallet address not found");
-      }
-
-    } 
-    catch (error: any) {
-      setMessage('Authentication failed: ' + error.message);
+    if (response.data && response.data.walletAddress && response.data.token) {
+      const jwtToken = response.data.token;
+      Cookie.set('token', jwtToken);
+      const decodedToken: any = jwt_decode(jwtToken);
+      setUsername(decodedToken.username);
+      setWalletAddress(decodedToken.walletAddress);
+      const redirectUrl = router.query.redirect || '/dashboard';
+      router.push(redirectUrl.toString());
+    } else {
+      throw new Error("Wallet address or JWT token not found");
     }
+
+  } 
+  catch (error: any) {
+    setMessage('Authentication failed: ' + error.message);
+  }
     // try {
     //   const res = await authenticateUser(username,origin);
     //   console.log("result Auth : ", res)
