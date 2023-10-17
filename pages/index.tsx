@@ -10,12 +10,21 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
+  // useEffect(() => {
+  //   // Check if user is already logged in
+  //   const loggedInUsername = Cookie.get("username");
+  //   const walletAddress = Cookie.get("walletAddress");
+  //   if (loggedInUsername && walletAddress) {
+  //     router.push(`/dashboard`);
+  //   }
+  // }, [router]);
+
   useEffect(() => {
-    // Check if user is already logged in
+    const redirectUrl : any = router.query.redirect || "/dashboard"; 
     const loggedInUsername = Cookie.get("username");
     const walletAddress = Cookie.get("walletAddress");
     if (loggedInUsername && walletAddress) {
-      router.push(`/dashboard`);
+      router.push(redirectUrl);
     }
   }, [router]);
 
