@@ -10,21 +10,12 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // useEffect(() => {
-  //   // Check if user is already logged in
-  //   const loggedInUsername = Cookie.get("username");
-  //   const walletAddress = Cookie.get("walletAddress");
-  //   if (loggedInUsername && walletAddress) {
-  //     router.push(`/dashboard`);
-  //   }
-  // }, [router]);
-
   useEffect(() => {
-    const redirectUrl : any = router.query.redirect || "/dashboard"; 
+    // Check if user is already logged in
     const loggedInUsername = Cookie.get("username");
     const walletAddress = Cookie.get("walletAddress");
     if (loggedInUsername && walletAddress) {
-      router.push(redirectUrl);
+      router.push(`/dashboard`);
     }
   }, [router]);
 
@@ -67,7 +58,7 @@ export default function Home() {
     // }
   };
 
-  const authenticate = async (origin:string) => {
+  const authenticate = async (origin: string) => {
     try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
@@ -82,21 +73,13 @@ export default function Home() {
       });
 
       await axios.post('https://uim-alpha.meroku.org/authenticate', { challenge, authentication, origin });
+      let redirectUrlStr = Array.isArray(router.query.redirect) ? router.query.redirect[0] : router.query.redirect;
+      const redirectUrl = new URL(redirectUrlStr || '/dashboard', origin);
+      redirectUrl.searchParams.set('username', username);
+  
+      router.push(redirectUrl.toString());
 
-      setMessage('Authentication successful!');
-      
-      const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
-      if (response.data && response.data.walletAddress) {
-          Cookie.set('username', username);
-          Cookie.set('walletAddress', response.data.walletAddress);
-          // const redirectUrl = router.query.redirect || '/dashboard';
-          router.push(`/dashboard`);
-      } else {
-          throw new Error("Wallet address not found");
-      }
-
-    } 
-    catch (error: any) {
+    } catch (error: any) {
       setMessage('Authentication failed: ' + error.message);
     }
     // try {
