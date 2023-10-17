@@ -3,7 +3,6 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { client } from "@passwordless-id/webauthn";
 import Cookie from "js-cookie";
-import jwt from 'jsonwebtoken';
 // import { authenticateUser, registerUser } from "uim-sdk-ts";
 
 export default function Home() {
@@ -79,17 +78,10 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
-        const tokenPayload = {
-            username: username,
-            walletAddress: response.data.walletAddress
-        };
-
-        const token = jwt.sign(tokenPayload, 'abcd1234', { expiresIn: '1h' });
-
-        Cookie.set('token', token);
-        
-        const redirectUrl = `${router.query.redirect || '/dashboard'}?token=${token}`;
-        router.push(redirectUrl.toString());
+          Cookie.set('username', username);
+          Cookie.set('walletAddress', response.data.walletAddress);
+          const redirectUrl = router.query.redirect || '/dashboard';
+          router.push(redirectUrl.toString());
       } else {
           throw new Error("Wallet address not found");
       }
