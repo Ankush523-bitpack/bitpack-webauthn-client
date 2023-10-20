@@ -60,7 +60,7 @@ export default function Home() {
           if (redirectUrl !== '/dashboard') {
               window.location.href = `${redirectUrl}?username=${username}&walletAddress=${response.data.walletAddress}`;
           } else {
-              router.push(redirectUrl);
+              router.push('/dashboard');
           }
       } else {
           throw new Error("Wallet address not found");
