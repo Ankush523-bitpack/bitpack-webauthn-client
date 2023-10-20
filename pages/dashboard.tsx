@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
+import Cookie from 'js-cookie';
 
 const Dashboard = () => {
   const router = useRouter();
@@ -7,8 +8,8 @@ const Dashboard = () => {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const loggedInUsername = router.query.username as string;
-    const walletAddr = router.query.walletAddress as string;
+    const loggedInUsername = Cookie.get('username');
+    const walletAddr = Cookie.get('walletAddress');
 
     if (loggedInUsername && walletAddr) {
       setUsername(loggedInUsername);
@@ -18,8 +19,11 @@ const Dashboard = () => {
     }
 }, [router]);
 
+
   const signOut = () => {
-    // Clearing states
+    // Clearing cookies and states
+    Cookie.remove('username');
+    Cookie.remove('walletAddress');
     setWalletAddress(null);
     setUsername(null);
 

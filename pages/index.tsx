@@ -1,12 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { client } from "@passwordless-id/webauthn";
+import Cookie from "js-cookie";
+// import { authenticateUser, registerUser } from "uim-sdk-ts";
 
 export default function Home() {
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const loggedInUsername = Cookie.get("username");
+    const walletAddress = Cookie.get("walletAddress");
+    if (loggedInUsername && walletAddress) {
+        const redirectUrl = router.query.redirectUrl || '/dashboard';
+        if (redirectUrl !== '/dashboard') {
+            window.location.href = `${redirectUrl}?username=${loggedInUsername}&walletAddress=${walletAddress}`;
+        } else {
+            router.push(redirectUrl);
+        }
+    }
+}, [router]);
+
 
   const origin = "https://bitpack-webauthn-client.vercel.app";
 
@@ -14,6 +31,7 @@ export default function Home() {
    try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
+      console.log(challenge)
 
       const registration = await client.register(username, challenge, {
         authenticatorType: "auto",
@@ -28,12 +46,22 @@ export default function Home() {
         origin
       }
 
+      console.log(payload)
+
       await axios.post('https://uim-alpha.meroku.org/register', payload);
       setMessage('Registration successful!');
     } 
     catch (error: any) {
       setMessage('Registration failed: ' + error.message);
     }
+    // try {
+    //   const res = await registerUser(username,origin);
+    //   setMessage("Registration successful!");
+    //   console.log(res)
+    // } 
+    // catch (error: any) {
+    //   setMessage(error.message);
+    // }
   };
 
   const authenticate = async (origin:string) => {
@@ -56,11 +84,14 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
+          Cookie.set('username', username);
+          Cookie.set('walletAddress', response.data.walletAddress);
+          // const redirectUrl = router.query.redirect || '/dashboard';
           const redirectUrl = router.query.redirectUrl || '/dashboard';
           if (redirectUrl !== '/dashboard') {
               window.location.href = `${redirectUrl}?username=${username}&walletAddress=${response.data.walletAddress}`;
           } else {
-              router.push('/dashboard');
+              router.push(redirectUrl);
           }
       } else {
           throw new Error("Wallet address not found");
@@ -70,6 +101,16 @@ export default function Home() {
     catch (error: any) {
       setMessage('Authentication failed: ' + error.message);
     }
+    // try {
+    //   const res = await authenticateUser(username,origin);
+    //   console.log("result Auth : ", res)
+    //   setMessage("Authentication successful!");
+    //   Cookie.set("username", username);
+    //   Cookie.set("walletAddress", res);
+    //   router.push("/dashboard"); // Removed the query parameters here
+    // } catch (error: any) {
+    //   setMessage("Authentication failed: " + error.message);
+    // }
   };
 
   return (
