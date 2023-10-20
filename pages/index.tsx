@@ -56,9 +56,15 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
-          router.push(`/dashboard?username=${username}&walletAddress=${response.data.walletAddress}`);
+          const redirectUrl = router.query.redirectUrl || '/dashboard';
+          if (redirectUrl !== '/dashboard') {
+              window.location.href = `${redirectUrl}?username=${username}&walletAddress=${response.data.walletAddress}`;
+          } else {
+              router.push('/dashboard');
+          }
+      } else {
+          throw new Error("Wallet address not found");
       }
-      
 
     } 
     catch (error: any) {
