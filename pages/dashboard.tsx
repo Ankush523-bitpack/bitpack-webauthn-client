@@ -8,8 +8,8 @@ const Dashboard = () => {
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const loggedInUsername = Cookie.get('username');
-    const walletAddr = Cookie.get('walletAddress');
+    const loggedInUsername = localStorage.getItem('username');
+    const walletAddr = localStorage.getItem('walletAddress');    
 
     if (loggedInUsername && walletAddr) {
       setUsername(loggedInUsername);
@@ -22,8 +22,8 @@ const Dashboard = () => {
 
   const signOut = () => {
     // Clearing cookies and states
-    Cookie.remove('username');
-    Cookie.remove('walletAddress');
+    localStorage.removeItem('username');
+    localStorage.removeItem('walletAddress');    
     setWalletAddress(null);
     setUsername(null);
 

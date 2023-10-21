@@ -10,19 +10,6 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const loggedInUsername = Cookie.get("username");
-    const walletAddress = Cookie.get("walletAddress");
-    if (loggedInUsername && walletAddress) {
-        const redirectUrl = router.query.redirectUrl || '/dashboard';
-        if (redirectUrl !== '/dashboard') {
-            window.location.href = `${redirectUrl}?username=${loggedInUsername}&walletAddress=${walletAddress}`;
-        } else {
-            router.push(redirectUrl);
-        }
-    }
-}, [router]);
 
 
   const origin = "https://bitpack-webauthn-client.vercel.app";
@@ -84,8 +71,8 @@ export default function Home() {
       
       const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       if (response.data && response.data.walletAddress) {
-          Cookie.set('username', username);
-          Cookie.set('walletAddress', response.data.walletAddress);
+        localStorage.setItem('username', username);
+        localStorage.setItem('walletAddress', response.data.walletAddress);        
           // const redirectUrl = router.query.redirect || '/dashboard';
           const redirectUrl = router.query.redirectUrl || '/dashboard';
           if (redirectUrl !== '/dashboard') {
