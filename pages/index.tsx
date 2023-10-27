@@ -1,25 +1,48 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { client } from "@passwordless-id/webauthn";
-import Cookie from "js-cookie";
-// import { authenticateUser, registerUser } from "uim-sdk-ts";
 
 export default function Home() {
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-
-
   const origin = "https://bitpack-webauthn-client.vercel.app";
 
-  const register = async (origin:string) => {
-   try {
+  const handleUserIntent = async () => {
+    try {
+      const { data } = await axios.post('https://uim-alpha.meroku.org/user-exists', { username });
+        
+      if (data.exists) {
+        if (window.confirm("User already exists. Do you want to log in instead?")) {
+          await login();
+        }
+      } else {
+        await register();
+      }
+    } catch (error: any) {
+      setMessage("An error occurred: " + error.message);
+    }
+  };
+
+  const handleRedirect = async () => {
+    const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
+    if (response.data && response.data.walletAddress) {
+      localStorage.setItem('username', username);
+      localStorage.setItem('walletAddress', response.data.walletAddress);
+      const redirectUrl = '/dashboard';
+      router.push(redirectUrl);
+    } else {
+      throw new Error("Wallet address not found");
+    }
+  };
+
+
+  const register = async () => {
+    try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
-      console.log(challenge)
-
       const registration = await client.register(username, challenge, {
         authenticatorType: "auto",
         userVerification: "required",
@@ -27,77 +50,35 @@ export default function Home() {
         attestation: false,
         debug: false,
       });
-
       const payload = {
         registration,
-        origin
-      }
-
-      console.log(payload)
-
-      await axios.post('https://uim-alpha.meroku.org/register', payload);
+        origin,
+      };
+      await axios.post('https://uim-alpha.meroku.org/userIntention', { userIntent: "register", payload });
       setMessage('Registration successful!');
-    } 
-    catch (error: any) {
+      await handleRedirect();
+    } catch (error: any) {
       setMessage('Registration failed: ' + error.message);
     }
-    // try {
-    //   const res = await registerUser(username,origin);
-    //   setMessage("Registration successful!");
-    //   console.log(res)
-    // } 
-    // catch (error: any) {
-    //   setMessage(error.message);
-    // }
   };
 
-  const authenticate = async (origin:string) => {
+  const login = async () => {
     try {
       const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
       const challenge = challengeResponse.data.challenge;
-
       const credentialsResponse = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
       const credentials = credentialsResponse.data.credentialIds;
-
       const authentication = await client.authenticate(credentials, challenge, {
         authenticatorType: "auto",
         userVerification: "required",
         timeout: 60000,
       });
-
-      await axios.post('https://uim-alpha.meroku.org/authenticate', { challenge, authentication, origin });
-
+      await axios.post('https://uim-alpha.meroku.org/userIntention', { userIntent: "login", challenge, authentication, origin });
       setMessage('Authentication successful!');
-      
-      const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
-      if (response.data && response.data.walletAddress) {
-        localStorage.setItem('username', username);
-        localStorage.setItem('walletAddress', response.data.walletAddress);        
-          // const redirectUrl = router.query.redirect || '/dashboard';
-          const redirectUrl = router.query.redirectUrl || '/dashboard';
-          if (redirectUrl !== '/dashboard') {
-              window.location.href = `${redirectUrl}?username=${username}&walletAddress=${response.data.walletAddress}`;
-          } else {
-              router.push(redirectUrl);
-          }
-      } else {
-          throw new Error("Wallet address not found");
-      }
-
-    } 
-    catch (error: any) {
+      await handleRedirect();
+    } catch (error: any) {
       setMessage('Authentication failed: ' + error.message);
     }
-    // try {
-    //   const res = await authenticateUser(username,origin);
-    //   console.log("result Auth : ", res)
-    //   setMessage("Authentication successful!");
-    //   Cookie.set("username", username);
-    //   Cookie.set("walletAddress", res);
-    //   router.push("/dashboard"); // Removed the query parameters here
-    // } catch (error: any) {
-    //   setMessage("Authentication failed: " + error.message);
-    // }
   };
 
   return (
@@ -122,16 +103,10 @@ export default function Home() {
           </div>
           <div className="flex justify-between space-x-4">
             <button
-              onClick={() => register(origin)}
+              onClick={() => handleUserIntent()}
               className="w-full p-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
-              Register
-            </button>
-            <button
-              onClick={() => authenticate(origin)}
-              className="w-full p-2 text-white bg-green-500 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-            >
-              Login
+              Sign In
             </button>
           </div>
         </div>
