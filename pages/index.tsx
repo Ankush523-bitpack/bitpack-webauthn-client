@@ -1,23 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { client } from "@passwordless-id/webauthn";
+import { config } from "dotenv";
+// import { authenticateUser, registerUser } from "uim-sdk-ts";
+
+config();
+
+const meroku_url = 'https://uim-alpha.meroku.org';
 
 export default function Home() {
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
+  const [origin, setOrigin] = useState(""); 
   const router = useRouter();
 
-  const origin = "https://bitpack-webauthn-client.vercel.app";
+  useEffect(() => {
+    // set origin from window.location.origin when the component mounts
+    if (typeof window !== "undefined") { // checks if window is defined
+      setOrigin(window.location.origin);
+    }
+  }, []);
 
   const handleUserIntent = async () => {
     try {
-      const { data } = await axios.post('https://uim-alpha.meroku.org/user-exists', { username });
+      const { data } = await axios.post(`${meroku_url}/user-exists`, { username });
         
       if (data.exists) {
-        if (window.confirm("User already exists. Do you want to log in instead?")) {
-          await login();
-        }
+        await login();
       } else {
         await register();
       }
@@ -27,7 +37,7 @@ export default function Home() {
   };
 
   const handleRedirect = async () => {
-    const response = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
+    const response = await axios.get(`${meroku_url}/credentials/${username}`);
     if (response.data && response.data.walletAddress) {
       localStorage.setItem('username', username);
       localStorage.setItem('walletAddress', response.data.walletAddress);
@@ -41,9 +51,9 @@ export default function Home() {
 
   const register = async () => {
     try {
-      const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
-      const challenge = challengeResponse.data.challenge;
-      const registration = await client.register(username, challenge, {
+      const challengeResponse = await axios.post(`${meroku_url}/request-challenge`, { username });
+      const challenge2 = challengeResponse.data.challenge;
+      const registration = await client.register(username, challenge2, {
         authenticatorType: "auto",
         userVerification: "required",
         timeout: 60000,
@@ -54,31 +64,63 @@ export default function Home() {
         registration,
         origin,
       };
-      await axios.post('https://uim-alpha.meroku.org/userIntention', { userIntent: "register", payload });
+      await axios.post(`${meroku_url}/userIntention`, { userIntent: "register", payload });
       setMessage('Registration successful!');
       await handleRedirect();
     } catch (error: any) {
-      setMessage('Registration failed: ' + error.message);
+      if (error.message === "Operation failed.")
+      {
+        setMessage('Registration failed due to absence of a passkey on your device. Set up a passkey on your device and try again');
+        window.open("https://www.google.com/account/about/passkeys/", "_blank");
+      }
+      else
+      {
+        setMessage('Registration failed: ' + error.message);
+      }
     }
+
+    // try {
+    //   const res = await registerUser(username,origin);
+    //   setMessage("Registration successful!");
+    //   await handleRedirect();
+    //   console.log(res)
+    // } 
+    // catch (error: any) {
+    //   setMessage(error.message);
+    // }
   };
 
   const login = async () => {
     try {
-      const challengeResponse = await axios.post('https://uim-alpha.meroku.org/request-challenge', { username });
+      const challengeResponse = await axios.post(`${meroku_url}/request-challenge`, { username });
       const challenge = challengeResponse.data.challenge;
-      const credentialsResponse = await axios.get(`https://uim-alpha.meroku.org/credentials/${username}`);
+      const credentialsResponse = await axios.get(`${meroku_url}/credentials/${username}`);
       const credentials = credentialsResponse.data.credentialIds;
       const authentication = await client.authenticate(credentials, challenge, {
         authenticatorType: "auto",
         userVerification: "required",
         timeout: 60000,
       });
-      await axios.post('https://uim-alpha.meroku.org/userIntention', { userIntent: "login", challenge, authentication, origin });
+      await axios.post(`${meroku_url}/userIntention`, { userIntent: "login", challenge, authentication, origin });
       setMessage('Authentication successful!');
       await handleRedirect();
     } catch (error: any) {
-      setMessage('Authentication failed: ' + error.message);
+      if(error.message === "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client."){
+        setMessage('This username is not available. Please try something else.');
+      }
+      else{
+        setMessage('Authentication failed: ' + error.message);
+      }
     }
+
+    // try {
+    //   const res = await authenticateUser(username,origin);
+    //   console.log("result Auth : ", res)
+    //   setMessage("Authentication successful!");
+    //   await handleRedirect();
+    // } catch (error: any) {
+    //   setMessage("Authentication failed: " + error.message);
+    // }
   };
 
   return (
