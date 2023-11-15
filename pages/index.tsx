@@ -68,7 +68,7 @@ export default function Home() {
       setMessage('Registration successful!');
       await handleRedirect();
     } catch (error: any) {
-      if (error.message === "Operation failed." || error.message === "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client")
+      if (error.message === "Operation failed." || error.message === "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client" || error.message === "The request has bee cancelled by the user.")
       {
         setMessage('Registration failed due to absence of a passkey on your device. Set up a passkey on your device and try again');
           // Check for device type and redirect accordingly
