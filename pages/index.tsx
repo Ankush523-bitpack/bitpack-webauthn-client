@@ -77,7 +77,7 @@ export default function Home() {
         window.location.href = "https://passkeys-demo.appspot.com"; // URL for iOS passkey setup
       } else if (/android/i.test(navigator.userAgent)) {
         // Android device
-        window.location.href = "https://support.google.com/accounts/answer/6103523?hl=en"; // URL for Android passkey setup
+        window.location.href = "https://www.google.com/account/about/passkeys"; // URL for Android passkey setup
       } else {
         // For other devices or unable to determine the device type
         setMessage('Set up a passkey on your device and try again.');
