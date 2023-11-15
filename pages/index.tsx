@@ -71,7 +71,17 @@ export default function Home() {
       if (error.message === "Operation failed.")
       {
         setMessage('Registration failed due to absence of a passkey on your device. Set up a passkey on your device and try again');
-        window.open("https://www.google.com/account/about/passkeys/", "_blank");
+          // Check for device type and redirect accordingly
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        // iOS device
+        window.location.href = "https://passkeys-demo.appspot.com"; // URL for iOS passkey setup
+      } else if (/android/i.test(navigator.userAgent)) {
+        // Android device
+        window.location.href = "https://support.google.com/accounts/answer/6103523?hl=en"; // URL for Android passkey setup
+      } else {
+        // For other devices or unable to determine the device type
+        setMessage('Set up a passkey on your device and try again.');
+      }
       }
       else
       {
