@@ -7,7 +7,7 @@ import { config } from "dotenv";
 
 config();
 
-const meroku_url = 'https://uim-alpha.meroku.org';
+const meroku_url = process.env.NEXT_PUBLIC_MEROKU_URL
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -68,36 +68,25 @@ export default function Home() {
       setMessage('Registration successful!');
       await handleRedirect();
     } catch (error: any) {
-      if (error.message === "Operation failed." || error.message === "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client." || error.message === "The request has bee cancelled by the user.")
+      if (error.message === "Operation failed." || error.message === "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client.")
       {
         setMessage('Registration failed due to absence of a passkey on your device. Set up a passkey on your device and try again');
-          // Check for device type and redirect accordingly
-      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        // iOS device
-        window.location.href = "https://passkeys-demo.appspot.com"; // URL for iOS passkey setup
-      } else if (/android/i.test(navigator.userAgent)) {
-        // Android device
-        window.location.href = "https://www.google.com/account/about/passkeys"; // URL for Android passkey setup
-      } else {
-        // For other devices or unable to determine the device type
-        setMessage('Set up a passkey on your device and try again.');
+        if (/android/i.test(navigator.userAgent)) {
+          window.open("https://www.google.com/account/about/passkeys/", "_blank"); // URL for Android passkey setup
+        }
+        else {
+          // For other devices or unable to determine the device type
+          setMessage('Set up a passkey on your device and try again.');
+        }
       }
+      else if(error.message === "Request failed with status code 403"){
+        setMessage('We didn’t recognize this device. Please try again with a device you’ve used before.');
       }
       else
       {
         setMessage('Registration failed: ' + error.message);
       }
     }
-
-    // try {
-    //   const res = await registerUser(username,origin);
-    //   setMessage("Registration successful!");
-    //   await handleRedirect();
-    //   console.log(res)
-    // } 
-    // catch (error: any) {
-    //   setMessage(error.message);
-    // }
   };
 
   const login = async () => {
@@ -122,15 +111,6 @@ export default function Home() {
         setMessage('Authentication failed: ' + error.message);
       }
     }
-
-    // try {
-    //   const res = await authenticateUser(username,origin);
-    //   console.log("result Auth : ", res)
-    //   setMessage("Authentication successful!");
-    //   await handleRedirect();
-    // } catch (error: any) {
-    //   setMessage("Authentication failed: " + error.message);
-    // }
   };
 
   return (
